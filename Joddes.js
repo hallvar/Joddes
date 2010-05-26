@@ -36,6 +36,10 @@ Object.prototype.inherit = function(clas, inherit) {
 	}	
 };
 
+Object.prototype.GetType = function() {
+	return new System.Type(this.constructor);
+}
+
 var JDS = {
 	using: function () {
 		if(!window.usingsLoading) {
@@ -44,9 +48,9 @@ var JDS = {
 		}
 			
 		for(var i=0;i < arguments.length;i++) {
-			if(!window.usingsLoading[arguments[i]]) {
-					window.usingsLoading[arguments[i]] = true;
-					window.numUsingsLoading++;
+			if(typeof window.usingsLoading[arguments[i]] == "undefined") {
+				window.usingsLoading[arguments[i]] = true;
+				window.numUsingsLoading++;
 					var script = document.createElement("script");
 					script.type = 'text/javascript';
 					var src = 'js/'+arguments[i].replace(/\./g, '/')+'.js';
@@ -57,14 +61,72 @@ var JDS = {
 				       load(src);
 					} else {
 						script.src = src;
+						var done = false;
+						
+						(function(script, name, done) {
+						script.onload = script.onreadystatechange = function (e) {
+				            if(eval("typeof("+name+");") == "undefined") {
+				            		console.log("Failed to load "+name);
+				            }
+				            
+				            if (!done && (!this.readyState || this.readyState == "loaded" || this.readyState == "complete") ) {
+				                done = true;
+				                script.onload = script.onreadystatechange = null;
+				                document.body.removeChild(script);
+				                //if (!called) {
+				                //    callback(false);
+				                //}
+				            }
+				        };
+				        })(script, arguments[i], done);
+						
 						document.body.appendChild(script);
 					}
 			}
 		}
 	
-		window.setTimeout(function() {
-			// TODO: Check if script has not been loaded
+		if(typeof(JDS._loadingCheckTimer) != 'undefined') {
+			window.clearTimeout(JDS._loadingCheckTimer);
+		}
+	
+		JDS._loadingCheckTimer = window.setTimeout(function() {
+			delete JDS._loadingCheckTimer;
+			if(window.numUsingsLoading > 0) {
+				console.log("Not all JDS.usings have been loaded yet. This could mean they have errors or does not exist");
+				for(var k in window.usingsLoading) {
+					if(window.usingsLoading[k] === true) {
+						console.log("Still waiting for: "+k)
+					}
+				}
+			}
 		}, 10*1000);
+	},
+	
+	setUsingsLoaded: function(name)
+	{
+		if(!window.usingsLoading) {
+            window.usingsLoading = {};
+            window.numUsingsLoading = 0;
+        }
+        
+        if(window.usingsLoading[name]) {
+			window.usingsLoading[name] = false;
+			window.numUsingsLoading--;
+		} else {
+			window.usingsLoading[name] = false;
+		}
+		
+		if(window.numUsingsLoading === 0) {
+			if(JDS._hadonload) {
+				setTimeout(function() {
+				JDS.onusingsloaded();   
+
+			 	//var evt = document.createEvent("Event");
+				//evt.initEvent('usingsloaded', false, false);                               
+				//window.dispatchEvent(evt);
+				}, 0);
+			}	
+		}
 	},
 	
 	defineClass: function(value) {
@@ -79,14 +141,19 @@ var JDS = {
 				}
 			}
 		} 
+		
+		var name = value.name.replace(/\$/g, '.');
+		
 		if(!window.usingsLoading) {
             window.usingsLoading = {};
             window.numUsingsLoading = 1;
         }
-		var name = value.name.replace(/\$/g, '.');
-		if(name != null && window.usingsLoading[name]) {
+        
+		if(window.usingsLoading[name]) {
 			window.usingsLoading[name] = false;
 			window.numUsingsLoading--;
+		} else {
+			window.usingsLoading[name] = false;
 		}
 		
 		// configure namespace
@@ -99,15 +166,15 @@ var JDS = {
 		}
 		
 		cur[path[path.length-1]] = value;
-		                                             
+		                                            
 		if(window.numUsingsLoading === 0) {
 			if(JDS._hadonload) {
 				setTimeout(function() {
-				JDS.onusingsloaded();   
-
-			 	//var evt = document.createEvent("Event");
-				//evt.initEvent('usingsloaded', false, false);                               
-				//window.dispatchEvent(evt);
+				 	var evt = document.createEvent("Event");
+					evt.initEvent('usingsloaded', false, false);                               
+					window.dispatchEvent(evt);
+					
+					JDS.onusingsloaded();
 				}, 0);
 			}	
 		}
