@@ -1,5 +1,10 @@
 Joddes is a very small JavaScript framework.
 
-Copyright (c) Hallvar Helleseth <hallvar@gmail.com>
+Copyright (c) 2010, Hallvar Helleseth (hallvar@gmail.com). All Rights Reserved.
+Released under the MIT licence (www.opensource.org/licenses/mit-license.php) 
 
-Licensed under Don't be evil.
+Features:
+- A small package and dependency system
+- A few methods for OOP programming in JavaScript
+
+v0.1: Only tested on WebKit, Firefox and EnvJS
