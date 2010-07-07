@@ -11,7 +11,7 @@ var JDS = {
 	/**
 	 * Base URL from where all Joddes using JavaScript files are located
 	 */  
-	baseUrl: 'js',
+	baseUrl: 'bin/js',
 	
 	/**
 	 * Base URL from where all Joddes using JavaScript files are located
