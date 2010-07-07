@@ -60,12 +60,12 @@ var JDS = {
 			            if (!done && (!this.readyState || this.readyState == 'loaded' || this.readyState == 'complete') ) {
 			                done = true;
 			                script.onload = script.onreadystatechange = null;
-			                document.body.removeChild(script);
+			                document.getElementsByTagName("head")[0].removeChild(script);
 			            }
 			        };
 			        })(script, name, done);
 					
-					document.body.appendChild(script);
+					document.getElementsByTagName("head")[0].appendChild(script);
 				}
 			}
 		}
@@ -188,6 +188,17 @@ if ( typeof Object.getPrototypeOf !== 'function' ) {
   }
 }
 
+Object.getMethodNames = function(obj) {
+	var names = [];
+	for(var k in obj) {
+		if(typeof(obj[k]) == 'function') {
+			names.push(k);
+		}
+	}
+	
+	return names;
+}
+
 /**
  * Enables a "class" to inherit from another class
  * Ex:
@@ -240,3 +251,18 @@ Function.prototype.bind = function(scope) {
           return _function.apply(scope, arguments);
     };
 };
+/*
+Function.prototype.setNamespace = function(ns) {
+	var _function = this;
+	return function() {
+		  with(ns()) {
+			console.log(ns());
+			return _function.apply(this, arguments);
+		  }
+    };
+};*/
+
+Function.prototype.setAttributes = function(attributes) {
+	this.attributes = attributes;
+	return this;
+}
